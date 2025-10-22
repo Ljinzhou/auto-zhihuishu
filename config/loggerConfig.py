@@ -25,7 +25,7 @@ class LoggerConfigurator:
     - 控制台与文件统一使用自定义格式（控制台带颜色，文件不带颜色）。
     """
 
-    def __init__(self, log_level: str = "INFO", log_file_path: Optional[str] = None):
+    def __init__(self, log_level: str = "DEBUG", log_file_path: Optional[str] = None):
         # 保存日志级别与文件路径，便于在 setup 中使用
         self.log_level = log_level
         self.log_file_path = log_file_path
