@@ -13,6 +13,7 @@ from typing import Optional
 from loguru import logger
 import sys  # 引入 sys 以便将日志输出到标准输出，从而支持颜色
 import datetime as dt  # 引入日期时间模块用于生成日志文件的时间戳
+import logging  # 控制第三方库（如 urllib3、selenium）的日志级别
 
 
 class LoggerConfigurator:
@@ -73,6 +74,15 @@ class LoggerConfigurator:
             encoding="utf-8",
             enqueue=True,
         )
+
+        # 抑制第三方库在控制台的噪音（特别是 urllib3 的连接池告警）
+        try:
+            logging.getLogger("urllib3").setLevel(logging.ERROR)
+            logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
+            logging.getLogger("requests.packages.urllib3").setLevel(logging.ERROR)
+            logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(logging.ERROR)
+        except Exception:
+            pass
 
         # 返回配置后的 logger
         return logger
