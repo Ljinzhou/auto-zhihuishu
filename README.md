@@ -1,14 +1,24 @@
 # auto-zhihuishu
 这是一个由Python编写的自动智慧树答题脚本。该脚本使用Selenium获取网页元素，通过OCR技术提取文字，再由LLM外置大脑进行思考答题。整个过程完全自动化，双击即可运行脚本。
 
+## 开发计划
+- [x] 自动处理视频课程
+- [x] 自动随堂测试
+- [ ] 自动处理章节测试
+- [ ] 自动完成视频课后测试
+- [ ] 适配更多的课程
+- [ ] 简化代码，优化屎山
+- [ ] 完善异常处理
+- [ ] 适配更多的LLM
+
 ## 如何使用
 1. 首先确保你已安装Python 3.10+
 2. 安装依赖
 ```bash
 pip install -r requirements.txt
 ```
-3. 下载Edge WebDriver
-   - 请下载与你Edge浏览器版本匹配的WebDriver，下载地址：[Edge WebDriver](https://msedgedriver.microsoft.com/141.0.3537.99/edgedriver_win64.zip)
+3. 配置Edge WebDriver
+   - 首先下载WebDriver，下载地址：[Edge WebDriver](https://msedgedriver.microsoft.com/141.0.3537.99/edgedriver_win64.zip)
    - 下载完成后，将`edgedriver_win64.zip`文件解压到`tools`根目录下
    - 解压好后的文件结构应是
 ```
