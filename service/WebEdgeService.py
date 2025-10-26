@@ -28,7 +28,7 @@ class WebEdgeService:
     ):
         # 统一 cookies 路径：从 JsonLoadConfig 解析
         self._shutdown_done = False
-        self.cookies_file = resolve_cookie_file_path(None)
+        self.cookies_file = resolve_cookie_file_path()
         cookies_cfg_path: Optional[str] = self.cookies_file
         try:
             p = Path(self.cookies_file)
@@ -63,6 +63,17 @@ class WebEdgeService:
     ):
         """保存当前浏览器的 Cookie 到指定文件。"""
         target = file_path or self.cookies_file
+        # 会话健壮性检查：若驱动或会话已关闭，直接跳过保存
+        try:
+            if not hasattr(self, "driver") or self.driver is None:
+                logger.debug("Driver 不存在，跳过保存 Cookie。")
+                return
+            if getattr(self.driver, "session_id", None) is None:
+                logger.debug("Driver 会话已结束，跳过保存 Cookie。")
+                return
+        except Exception:
+            # 若检查本身异常，不影响后续保存流程
+            pass
         try:
             cookies = self.driver.get_cookies()
             try:
@@ -790,18 +801,23 @@ class WebEdgeService:
         pass
     
     
-    # 关闭浏览器并保存 Cookie,释放线程
+    # FIXME: 关闭浏览器并保存 Cookie,释放线程
     def shutdown(self):
+        """结束服务，先保存 Cookie，再释放线程，最后关闭浏览器。"""
         if self._shutdown_done:
             return
         self._shutdown_done = True
         try:
-            logger.info("开始关闭：暂停监听并保存 Cookie")
-            self.release_listeners()
+            logger.info("触发服务关闭：准备先保存 Cookie")
             self._save_cookies(self.cookies_file)
         except Exception as e:
-            logger.warning(f"保存或释放资源时出现异常：{e}")
+            logger.warning(f"服务关闭保存 Cookie 失败：{e}")
         finally:
+            try:
+                self.release_listeners()
+                logger.debug("监听线程已释放")
+            except Exception:
+                pass
             try:
                 self.driver.quit()
                 logger.info("浏览器已关闭，退出程序。")

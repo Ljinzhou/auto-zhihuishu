@@ -6,18 +6,8 @@ from config.JsonLoadConfig import resolve_driver_exe_path, resolve_cookie_file_p
 from config.WebdriverConfig import WebDriverConfigurator
 import signal
 import atexit
-
-# 注册 Ctrl+C 信号处理与退出兜底，确保保存 Cookie 与释放资源
-def safe_shutdown(*_args):
-    try:
-        web_service.shutdown()
-    except Exception:
-        pass
-    atexit.register(safe_shutdown)
-    try:
-        signal.signal(signal.SIGINT, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt))
-    except Exception:
-        pass
+import keyboard 
+import os
 
 def main():
     # 初始化日志系统
@@ -28,7 +18,24 @@ def main():
     cookie_file = resolve_cookie_file_path()
     configurator = WebDriverConfigurator(driver_path=driver_exe, cookies_file=cookie_file)
     web_service = WebEdgeService(configurator=configurator)
-    
+
+    # 热键退出：Ctrl+Shift+C
+    def hotkey_shutdown():
+        logger.warning("收到 Ctrl+Shift+C，先保存 Cookie，再释放线程与浏览器资源...")
+        try:
+            web_service.shutdown()
+        finally:
+            # 确保立刻退出进程（已完成清理）
+            os._exit(0)
+
+    # 注册热键
+    atexit.register(hotkey_shutdown)
+    try:
+        keyboard.add_hotkey("ctrl+shift+c", hotkey_shutdown)
+        logger.info("已注册退出热键：Ctrl+Shift+C")
+    except Exception as e:
+        logger.error(f"注册热键失败：{e}")
+
     try:
         # 打开入口并确保登录进入学习页面
         web_service._ensure_login_and_enter_study()
@@ -53,11 +60,7 @@ def main():
             logger.info(f"课程 {unfinished} 处理完成，即将进行下一个课程")
             sleep(3)
 
-    except KeyboardInterrupt:
-        logger.warning("收到 Ctrl+C，正在保存 Cookie 并退出...")
-        safe_shutdown()
     finally:
-        # 兜底关闭（shutdown 已幂等）
         safe_shutdown()
 
 
