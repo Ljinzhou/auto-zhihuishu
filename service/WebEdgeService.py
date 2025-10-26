@@ -27,7 +27,8 @@ class WebEdgeService:
         cookies_file: Optional[str] = None
     ):
         # 统一 cookies 路径：从 JsonLoadConfig 解析
-        self.cookies_file = resolve_cookie_file_path()
+        self._shutdown_done = False
+        self.cookies_file = resolve_cookie_file_path(None)
         cookies_cfg_path: Optional[str] = self.cookies_file
         try:
             p = Path(self.cookies_file)
@@ -704,7 +705,7 @@ class WebEdgeService:
             pass
         logger.debug("已释放线程资源")
 
-    # FIXME: 处理单个课程
+    # TODO: 处理单个课程
     def _handle_course(
         self, 
         course_element: WebElement
@@ -791,8 +792,18 @@ class WebEdgeService:
     
     # 关闭浏览器并保存 Cookie,释放线程
     def shutdown(self):
+        if self._shutdown_done:
+            return
+        self._shutdown_done = True
         try:
+            logger.info("开始关闭：暂停监听并保存 Cookie")
             self.release_listeners()
             self._save_cookies(self.cookies_file)
+        except Exception as e:
+            logger.warning(f"保存或释放资源时出现异常：{e}")
         finally:
-            self.driver.quit()
+            try:
+                self.driver.quit()
+                logger.info("浏览器已关闭，退出程序。")
+            except Exception:
+                pass

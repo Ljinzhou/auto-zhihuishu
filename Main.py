@@ -4,7 +4,20 @@ from service.WebEdgeService import WebEdgeService
 from time import sleep
 from config.JsonLoadConfig import resolve_driver_exe_path, resolve_cookie_file_path
 from config.WebdriverConfig import WebDriverConfigurator
+import signal
+import atexit
 
+# 注册 Ctrl+C 信号处理与退出兜底，确保保存 Cookie 与释放资源
+def safe_shutdown(*_args):
+    try:
+        web_service.shutdown()
+    except Exception:
+        pass
+    atexit.register(safe_shutdown)
+    try:
+        signal.signal(signal.SIGINT, lambda *_: (_ for _ in ()).throw(KeyboardInterrupt))
+    except Exception:
+        pass
 
 def main():
     # 初始化日志系统
@@ -39,14 +52,13 @@ def main():
             web_service.pause_listeners()
             logger.info(f"课程 {unfinished} 处理完成，即将进行下一个课程")
             sleep(3)
-        
+
+    except KeyboardInterrupt:
+        logger.warning("收到 Ctrl+C，正在保存 Cookie 并退出...")
+        safe_shutdown()
     finally:
-        # 释放监听线程资源，并在结束前保存 Cookie 关闭浏览器
-        try:
-            web_service.release_listeners()
-        except Exception:
-            pass
-        web_service.shutdown()
+        # 兜底关闭（shutdown 已幂等）
+        safe_shutdown()
 
 
 if __name__ == "__main__":
