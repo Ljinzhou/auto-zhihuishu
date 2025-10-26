@@ -59,9 +59,8 @@ def main():
             web_service.pause_listeners()
             logger.info(f"课程 {unfinished} 处理完成，即将进行下一个课程")
             sleep(3)
-
     finally:
-        safe_shutdown()
+        web_service.shutdown()
 
 
 if __name__ == "__main__":
