@@ -1,14 +1,13 @@
-import os
 import json
 import re
-import random
-from typing import List, Dict, Any, Optional
+import json
+from typing import List, Dict, Any
 from openai import OpenAI
 from loguru import logger
+from config.JsonLoadConfig import get_llm_deepseek_config
 
 
 # DeepSeek 配置
-DEEPSEEK_API_KEY = ""
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEEPSEEK_MODEL = "deepseek-chat"
 
@@ -16,16 +15,15 @@ DEEPSEEK_MODEL = "deepseek-chat"
 class DeepSeek:
     def __init__(
         self,
-        api_key: Optional[str] = None,
-        base_url: str = DEEPSEEK_BASE_URL,
-        model: str = DEEPSEEK_MODEL,
     ):
-        # 使用写死的密钥；若传入 api_key 则优先使用传入值
-        self.api_key = api_key or DEEPSEEK_API_KEY
-        if not self.api_key or self.api_key == "YOUR_DEEPSEEK_API_KEY":
-            raise RuntimeError("请在代码中写入真实的 DEEPSEEK_API_KEY。")
-        self.client = OpenAI(api_key=self.api_key, base_url=base_url)
-        self.model = model
+        # 统一从 JsonLoadConfig 读取
+        ds = get_llm_deepseek_config()
+        self.api_key = ds.get("api_key")
+        if not self.api_key or self.api_key == "YOUR_API_KEY":
+            logger.error("DeepSeek API 密钥未配置")
+            raise RuntimeError("请在 config.json 的 llm.deepseek.api_key 写入真实的密钥，或在代码中传入 api_key。")
+        self.client = OpenAI(api_key=self.api_key, base_url=ds.get("base_url") or DEEPSEEK_BASE_URL)
+        self.model = ds.get("model") or DEEPSEEK_MODEL
         logger.info(f"DeepSeek 初始化完成，模型：{self.model}")
 
     def answer_question(self, qa_text: str) -> Dict[str, Any]:
