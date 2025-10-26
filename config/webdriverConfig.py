@@ -12,9 +12,6 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from config.JsonLoadConfig import resolve_driver_exe_path, resolve_cookie_file_path
 
-
-
-
 class WebDriverConfigurator:
     def __init__(
             self,
