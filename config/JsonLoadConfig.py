@@ -56,7 +56,7 @@ def resolve_driver_exe_path() -> str:
 
 def resolve_cookie_file_path() -> str:
     root = get_project_root()
-    web = get_web_config(cfg)
+    web = get_web_config()
     # 固定统一到 tools 目录下
     cookie = root / "tools" / web["cookie_path"].replace("\\", "/")
     return str(cookie)
