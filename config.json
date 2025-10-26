@@ -1,0 +1,13 @@
+{
+  "llm": {
+    "deepseek": {
+      "api_key": "YOUR_API_KEY",
+      "base_url": "https://api.deepseek.com",
+      "model": "deepseek-chat"
+    }
+  },
+  "web_config": {
+    "driver_path": "edgedriver_win64",
+    "cookie_path": "edgedriver_win64/cookies.json"
+  }
+}
