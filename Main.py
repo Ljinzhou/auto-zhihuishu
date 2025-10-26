@@ -1,7 +1,9 @@
 from loguru import logger
-from config.loggerConfig import LoggerConfigurator
+from config.LoggerConfig import LoggerConfigurator
 from service.WebEdgeService import WebEdgeService
 from time import sleep
+from config.JsonLoadConfig import resolve_driver_exe_path, resolve_cookie_file_path
+from config.WebdriverConfig import WebDriverConfigurator
 
 
 def main():
@@ -9,7 +11,10 @@ def main():
     LoggerConfigurator().setup()
 
     # 构建浏览器服务
-    web_service = WebEdgeService()
+    driver_exe = resolve_driver_exe_path()
+    cookie_file = resolve_cookie_file_path()
+    configurator = WebDriverConfigurator(driver_path=driver_exe, cookies_file=cookie_file)
+    web_service = WebEdgeService(configurator=configurator)
     
     try:
         # 打开入口并确保登录进入学习页面

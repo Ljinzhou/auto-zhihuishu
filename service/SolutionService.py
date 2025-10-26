@@ -1,14 +1,14 @@
+import numpy as np
+import tempfile
+import os
+
 from typing import List, Any, Optional
 from PIL import Image
 from loguru import logger
 from cnocr import CnOcr
 from tools.llms.DeepSeek import DeepSeek, get_client
-from typing import Tuple
 from io import BytesIO
 from time import sleep
-
-import numpy as np
-import tempfile, os
 
 
 class SolutionService:
@@ -234,7 +234,7 @@ class SolutionService:
 
             sleep(2)
             
-            # 关闭页面
+            # HACK: 关闭页面
             close_box = driver.execute_script(
                 """
                 var root = document.querySelector('div.ai-test-question-wrapper');
@@ -277,8 +277,3 @@ class SolutionService:
                 logger.error("未找到关闭按钮")
             return True
         return False
-    
-        
-        
-
-    

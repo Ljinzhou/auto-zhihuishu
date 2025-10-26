@@ -12,7 +12,8 @@ from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.remote.webelement import WebElement
 from selenium.webdriver.common.action_chains import ActionChains
 
-from config.webdriverConfig import WebDriverConfigurator
+from config.WebdriverConfig import WebDriverConfigurator
+from config.JsonLoadConfig import resolve_cookie_file_path
 from service.SolutionService import SolutionService
 
 
@@ -23,13 +24,13 @@ class WebEdgeService:
     def __init__(
         self, 
         configurator: Optional[WebDriverConfigurator] = None, 
-        cookies_file: str = "../tools/edgedriver_win64/cookies.json"
+        cookies_file: Optional[str] = None
     ):
-        # 判断 cookies.json 是否存在且非空，不满足则禁用 Cookie 加载
-        self.cookies_file = cookies_file
-        cookies_cfg_path: Optional[str] = cookies_file
+        # 统一 cookies 路径：从 JsonLoadConfig 解析
+        self.cookies_file = resolve_cookie_file_path()
+        cookies_cfg_path: Optional[str] = self.cookies_file
         try:
-            p = Path(cookies_file)
+            p = Path(self.cookies_file)
             if not p.exists():
                 logger.debug("Cookie 文件不存在，跳过加载。")
                 cookies_cfg_path = None
@@ -262,16 +263,7 @@ class WebEdgeService:
         logger.info(f"待观看课程数: {len(res['unfinished_course'])}, 待测试数: {len(res['unfinished_test'])}")
         return res
     
-    # FIXME: 判断视频是否正在播放
-    def _get_play_button(self):
-        """返回 controlsBar 内的播放控制按钮 #playButton。"""
-        driver = self.driver
-        try:
-            return driver.execute_script("return document.querySelector('div.controlsBar #playButton');")
-        except Exception:
-            return None
-    
-    # FIXME: 判断视频是否正在播放
+    # 判断视频是否正在播放
     def _is_playing(
         self
     ) -> bool:
@@ -284,7 +276,7 @@ class WebEdgeService:
                 sleep(0.2)
         except Exception as e:
             logger.debug(f"显示 controlsBar 异常: {e}")
-        btn = self._get_play_button()
+        btn = driver.execute_script("return document.querySelector('div.controlsBar #playButton');")
         if not btn:
             logger.warning("未找到播放控制按钮 #playButton，无法判断播放状态")
             return False
@@ -310,7 +302,7 @@ class WebEdgeService:
                 sleep(0.2)
         except Exception as e:
             logger.debug(f"显示 controlsBar 异常: {e}")
-        btn = self._get_play_button()
+        btn = driver.execute_script("return document.querySelector('div.controlsBar #playButton');")
         if not btn:
             logger.error("切换播放状态失败：未找到 #playButton")
             return False

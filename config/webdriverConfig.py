@@ -10,39 +10,30 @@ from selenium.webdriver.edge.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
+from config.JsonLoadConfig import resolve_driver_exe_path, resolve_cookie_file_path
+
+
 
 
 class WebDriverConfigurator:
-    """
-    浏览器驱动配置类
-    该类封装 Edge WebDriver 的创建逻辑，支持：
-    - 基础降噪选项；
-    - 指定用户数据目录与额外命令行参数；
-    - 隐式等待时间配置；
-    - 自动加载本地保存的 Cookie。
-    """
-
     def __init__(
             self,
-            driver_path: str = "./tools/edgedriver_win64/msedgedriver.exe",
+            driver_path: Optional[str] = None,
             user_data_dir: Optional[str] = None,
             additional_args: Optional[Iterable[str]] = None,
             implicit_wait_seconds: int = 10,
-            cookies_file: Optional[str] = "./tools/edgedriver_win64/cookies.json",
+            cookies_file: Optional[str] = None,
             cookie_base_url: Optional[str] = "https://onlineweb.zhihuishu.com/",
         ):
-        self.driver_path = driver_path
+        # 使用集中配置解析默认路径
+        self.driver_path = driver_path or resolve_driver_exe_path()
         self.user_data_dir = user_data_dir
         self.additional_args = list(additional_args) if additional_args else []
         self.implicit_wait_seconds = implicit_wait_seconds
-        self.cookies_file = cookies_file
+        self.cookies_file = cookies_file or resolve_cookie_file_path()
         self.cookie_base_url = cookie_base_url
 
     def build(self):
-        """
-        创建并返回配置好的 Edge WebDriver 实例，并在创建后自动尝试加载 Cookie。
-        """
-
         # 创建 EdgeOptions 并设置基础降噪
         options = Options()
         options.add_argument("--log-level=3")
@@ -75,13 +66,6 @@ class WebDriverConfigurator:
         return driver
 
     def _load_cookies(self, driver):
-        """
-        尝试从本地文件加载 Cookies 注入到浏览器：
-        - 若 cookie 文件不存在则跳过；
-        - 先打开基础域确保 cookie 域名匹配；
-        - 对可能不匹配的字段做兼容重试；
-        - 最后刷新页面以应用登录态。
-        """
         if not self.cookies_file or not Path(self.cookies_file).exists():
             logger.debug("未发现 Cookie 文件，跳过加载。")
             return
