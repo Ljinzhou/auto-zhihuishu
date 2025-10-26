@@ -8,7 +8,7 @@ from loguru import logger
 
 
 # DeepSeek 配置
-DEEPSEEK_API_KEY = "sk-9e13dd4eaa634345a05c46033c0e586c"
+DEEPSEEK_API_KEY = ""
 DEEPSEEK_BASE_URL = "https://api.deepseek.com"
 DEEPSEEK_MODEL = "deepseek-chat"
 
